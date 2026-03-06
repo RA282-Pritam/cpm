@@ -21,33 +21,23 @@
 
     <div class="max-w-[1400px] mx-auto">
         
-        <!-- HEADER & FILTERS -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <div>
-                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight tracking-tight">Campaign <span class="text-indigo-600">Metric Dashboard</span></h1>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Auto-populating filters from your data</p>
-            </div>
-            
-            <div class="flex gap-3">
-                <!-- Month Dropdown (Auto-populated) -->
-                <div class="flex flex-col">
-                    <select id="monthFilter" onchange="updateDashboard()" class="pl-4 pr-10 py-2 text-[11px] bg-white border border-slate-200 rounded-xl shadow-sm font-bold text-slate-600 cursor-pointer min-w-[130px]">
-                        <option value="All">All Months</option>
-                    </select>
-                </div>
-                <!-- Account Dropdown (Auto-populated) -->
-                <div class="flex flex-col">
-                    <select id="accountFilter" onchange="updateDashboard()" class="pl-4 pr-10 py-2 text-[11px] bg-white border border-slate-200 rounded-xl shadow-sm font-bold text-slate-600 cursor-pointer min-w-[180px]">
-                        <option value="All">All Accounts</option>
-                    </select>
-                </div>
-            </div>
+        <!-- FILTERS ONLY (Headers Removed) -->
+        <div class="flex justify-end mb-6 gap-3">
+            <select id="monthFilter" onchange="updateDashboard()" class="pl-4 pr-10 py-2 text-[11px] bg-white border border-slate-200 rounded-xl shadow-sm font-bold text-slate-600 cursor-pointer min-w-[130px]">
+                <option value="All">All Months</option>
+            </select>
+            <select id="accountFilter" onchange="updateDashboard()" class="pl-4 pr-10 py-2 text-[11px] bg-white border border-slate-200 rounded-xl shadow-sm font-bold text-slate-600 cursor-pointer min-w-[180px]">
+                <option value="All">All Accounts</option>
+            </select>
         </div>
 
         <!-- KPI & CHART AREA -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
             <div class="lg:col-span-3 glass-card p-4 h-[300px]">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">CPM Performance Matrix</h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="chartTitle" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">CPM Performance Matrix</h3>
+                    <span id="axisLabel" class="text-[9px] font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded">Grouping: Account</span>
+                </div>
                 <div class="h-[220px]"><canvas id="cpmChart"></canvas></div>
             </div>
 
@@ -86,7 +76,12 @@
     </div>
 
     <script>
-        // AAPKA EXCEL DATA YAHAN AYEEGA
+        // Chronological order for sorting
+        const monthOrder = {
+            "Oct-25": 1, "Nov-25": 2, "Dec-25": 3,
+            "Jan-26": 4, "Feb-26": 5, "Mar-26": 6
+        };
+
         const rawData = [
             { month: "Oct-25", account: "Aurum Analytica-NEW-INR - SC", spent:461406, impressions: 20469927 },
 { month: "Oct-25", account: "Aurum Analytica  - Sept 2 - SC", spent:358821, impressions: 19620019 },
@@ -205,42 +200,22 @@
 { month: "Feb-26", account: "Omaxe - IND - SC", spent:8675, impressions: 352417 },
 { month: "Feb-26", account: "Aurum Analytica - Dhruv Tranquil - SC", spent:8391, impressions: 1063417 },
 { month: "Feb-26", account: "Hero Homes", spent:5164, impressions: 452026 },
-{ month: "Feb-26", account: "Raheja Prime Mumbai", spent:2733, impressions: 914456 },
-{ month: "Mar-26", account: "Dhananjay - Team - SC", spent:17927, impressions: 519858 },
-{ month: "Mar-26", account: "Aurum Analytica - Sept 1 - SC", spent:7459, impressions: 320622 },
-{ month: "Mar-26", account: "Aurum Analytica-NEW-INR - SC", spent:6596, impressions: 308854 },
-{ month: "Mar-26", account: "Aurum Analytica  - Sept 2 - SC", spent:6331, impressions: 212169 },
-{ month: "Mar-26", account: "Kal Flick  - Vivanas Aloft - SC", spent:6153, impressions: 223238 },
-{ month: "Mar-26", account: "Aurum - August2 - SC", spent:4514, impressions: 118397 },
-{ month: "Mar-26", account: "Embassy_Group_Strategic_Mumbai - 12-02-2026 - SC", spent:4440, impressions: 438928 },
-{ month: "Mar-26", account: "Aurum Analytica Private Limited - Nov1 - SC", spent:3726, impressions: 89897 },
-{ month: "Mar-26", account: "AIPL", spent:3283, impressions: 175496 },
-{ month: "Mar-26", account: "Runwal - Avenue - SC", spent:2018, impressions: 113790 },
-{ month: "Mar-26", account: "AA New Project - 1 - SC", spent:1889, impressions: 56582 },
-{ month: "Mar-26", account: "Thane", spent:1490, impressions: 105149 },
-{ month: "Mar-26", account: "AA New Project - 2 - SC", spent:1489, impressions: 148732 },
-{ month: "Mar-26", account: "Raheja Prime Mumbai", spent:1484, impressions: 369646 },
-{ month: "Mar-26", account: "Nawah Emporio Bhubaneshwar", spent:1007, impressions: 60048 },
-{ month: "Mar-26", account: "Gurgaon", spent:102, impressions: 17811 }
-            // Naya data yahan add karte jayein...
+{ month: "Feb-26", account: "Raheja Prime Mumbai", spent:2733, impressions: 914456 }
         ];
 
         let cpmChart;
 
-        // IS FUNCTION SE FILTERS AUTOMATIC BANEGE
         function initDynamicFilters() {
             const monthSelect = document.getElementById('monthFilter');
             const accountSelect = document.getElementById('accountFilter');
 
-            // Get unique Months from rawData
-            const uniqueMonths = [...new Set(rawData.map(item => item.month))];
+            const uniqueMonths = [...new Set(rawData.map(item => item.month))].sort((a,b) => monthOrder[a] - monthOrder[b]);
             uniqueMonths.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m; opt.innerText = m;
                 monthSelect.appendChild(opt);
             });
 
-            // Get unique Accounts from rawData
             const uniqueAccounts = [...new Set(rawData.map(item => item.account))].sort();
             uniqueAccounts.forEach(acc => {
                 const opt = document.createElement('option');
@@ -248,50 +223,59 @@
                 accountSelect.appendChild(opt);
             });
 
-            updateDashboard(); // Initial load
+            updateDashboard();
         }
 
         function updateDashboard() {
             const mVal = document.getElementById('monthFilter').value;
             const aVal = document.getElementById('accountFilter').value;
+            const axisLabel = document.getElementById('axisLabel');
 
-            // Filter logic
             let filtered = rawData.filter(i => (mVal === "All" || i.month === mVal) && (aVal === "All" || i.account === aVal));
 
-            // Aggregation for "All Months" view
-            let data = [];
-            if (mVal === "All") {
+            let displayData = [];
+            let isProjectView = (aVal !== "All" && mVal === "All");
+
+            if (isProjectView) {
+                displayData = filtered; 
+                axisLabel.innerText = "Trend: Month-over-Month";
+                displayData.sort((a, b) => monthOrder[a.month] - monthOrder[b.month]);
+            } else if (mVal === "All") {
                 const grouped = filtered.reduce((acc, item) => {
-                    if (!acc[item.account]) acc[item.account] = { account: item.account, spent: 0, impressions: 0, month: "Overall" };
+                    if (!acc[item.account]) acc[item.account] = { account: item.account, spent: 0, impressions: 0, month: "LifeTime" };
                     acc[item.account].spent += item.spent;
                     acc[item.account].impressions += item.impressions;
                     return acc;
                 }, {});
-                data = Object.values(grouped);
+                displayData = Object.values(grouped);
+                axisLabel.innerText = "Grouping: Account";
             } else {
-                data = filtered;
+                displayData = filtered;
+                axisLabel.innerText = "Grouping: Account";
             }
 
-            // Calculation & Ranking
-            data.forEach(i => i.cpmVal = i.impressions > 0 ? (i.spent / i.impressions) * 1000 : 0);
-            data.sort((a, b) => b.cpmVal - a.cpmVal);
+            displayData.forEach(i => i.cpmVal = i.impressions > 0 ? (i.spent / i.impressions) * 1000 : 0);
+            
+            if (!isProjectView) {
+                displayData.sort((a, b) => b.cpmVal - a.cpmVal);
+            }
 
-            // Update Stats
-            const tSpent = data.reduce((s, i) => s + i.spent, 0);
-            const tImp = data.reduce((s, i) => s + i.impressions, 0);
+            const tSpent = displayData.reduce((s, i) => s + i.spent, 0);
+            const tImp = displayData.reduce((s, i) => s + i.impressions, 0);
             document.getElementById('totalSpent').innerText = '₹' + tSpent.toLocaleString('en-IN');
             document.getElementById('totalImpressions').innerText = tImp.toLocaleString('en-IN');
             document.getElementById('avgCPM').innerText = tImp > 0 ? ((tSpent / tImp) * 1000).toFixed(2) : "0.00";
 
-            // Update Table
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            data.forEach(item => {
+            displayData.forEach(item => {
+                const label = isProjectView ? item.month : item.account;
+                const subLabel = isProjectView ? item.account : item.month;
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition-all">
                         <td class="px-6 py-2.5">
-                            <div class="font-bold text-slate-800 text-[10px]">${item.account}</div>
-                            <div class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">${item.month}</div>
+                            <div class="font-bold text-slate-800 text-[10px]">${label}</div>
+                            <div class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">${subLabel}</div>
                         </td>
                         <td class="px-6 py-2.5 text-right font-bold text-slate-600 text-[10px]">₹${item.spent.toLocaleString('en-IN')}</td>
                         <td class="px-6 py-2.5 text-right text-[10px] text-slate-400 font-medium">${item.impressions.toLocaleString()}</td>
@@ -301,20 +285,21 @@
                     </tr>`;
             });
 
-            renderCPMChart(data);
+            const finalLabels = isProjectView 
+                ? displayData.map(i => i.month) 
+                : displayData.map(i => i.account.length > 12 ? i.account.substring(0,12)+'..' : i.account);
+
+            renderCPMChart(finalLabels, displayData.map(i => i.cpmVal));
         }
 
-        function renderCPMChart(data) {
-            const labels = data.map(i => i.account.length > 12 ? i.account.substring(0,12)+'..' : i.account);
-            const cValues = data.map(i => i.cpmVal);
+        function renderCPMChart(labels, values) {
             if (cpmChart) cpmChart.destroy();
-
             cpmChart = new Chart(document.getElementById('cpmChart'), {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        data: cValues,
+                        data: values,
                         backgroundColor: '#6366f1',
                         borderRadius: 5,
                         barThickness: 20
@@ -331,7 +316,6 @@
             });
         }
 
-        // Run the dynamic filter function on load
         initDynamicFilters();
     </script>
 </body>
