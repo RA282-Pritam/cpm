@@ -3,320 +3,400 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Analytics Dashboard</title>
+    <title>Smart Analytics Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Plugin for Data Labels on top of bars -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-        .glass-card { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; }
+        body { font-family: 'Outfit', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        .glass-card { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
         select { 
             -webkit-appearance: none; appearance: none; 
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 0.9rem;
+            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 0.8rem;
         }
+        .sort-header { cursor: pointer; transition: all 0.2s ease; }
+        .sort-header:hover { background-color: #f8fafc; color: #6366f1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-6">
+<body class="p-4 md:p-8">
 
-    <div class="max-w-[1400px] mx-auto">
+    <div class="max-w-[1500px] mx-auto">
         
-        <!-- FILTERS ONLY (Headers Removed) -->
-        <div class="flex justify-end mb-6 gap-3">
-            <select id="monthFilter" onchange="updateDashboard()" class="pl-4 pr-10 py-2 text-[11px] bg-white border border-slate-200 rounded-xl shadow-sm font-bold text-slate-600 cursor-pointer min-w-[130px]">
-                <option value="All">All Months</option>
-            </select>
-            <select id="accountFilter" onchange="updateDashboard()" class="pl-4 pr-10 py-2 text-[11px] bg-white border border-slate-200 rounded-xl shadow-sm font-bold text-slate-600 cursor-pointer min-w-[180px]">
-                <option value="All">All Accounts</option>
-            </select>
-        </div>
-
-        <!-- KPI & CHART AREA -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-            <div class="lg:col-span-3 glass-card p-4 h-[300px]">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 id="chartTitle" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">CPM Performance Matrix</h3>
-                    <span id="axisLabel" class="text-[9px] font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded">Grouping: Account</span>
-                </div>
-                <div class="h-[220px]"><canvas id="cpmChart"></canvas></div>
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 uppercase">AURAM ANALYTICA TABOOLA PERFORMANCE</h1>
+                <p id="viewIndicator" class="text-sm text-slate-500 font-medium">Global Account Overview</p>
             </div>
-
-            <div class="flex flex-col gap-3">
-                <div class="glass-card p-4 flex-1 flex flex-col justify-center border-l-4 border-l-slate-200">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Aggregate Spend</p>
-                    <h3 id="totalSpent" class="text-lg font-black text-slate-800 tracking-tighter">₹0</h3>
-                </div>
-                <div class="glass-card p-4 flex-1 flex flex-col justify-center border-l-4 border-l-slate-200">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Impressions</p>
-                    <h3 id="totalImpressions" class="text-lg font-black text-slate-800 tracking-tighter">0</h3>
-                </div>
-                <div class="glass-card p-4 flex-1 flex flex-col justify-center bg-indigo-600 shadow-lg shadow-indigo-100">
-                    <p class="text-[9px] font-bold text-indigo-200 uppercase tracking-widest mb-1">Global CPM</p>
-                    <h3 id="avgCPM" class="text-lg font-black text-white tracking-tighter">0</h3>
-                </div>
+            <div class="flex gap-3 w-full md:w-auto">
+                <select id="monthFilter" onchange="updateDashboard()" class="flex-1 md:flex-none pl-4 pr-10 py-2.5 text-xs bg-white border border-slate-200 rounded-xl shadow-sm font-semibold text-slate-600 cursor-pointer min-w-[140px] outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                <select id="accountFilter" onchange="updateDashboard()" class="flex-1 md:flex-none pl-4 pr-10 py-2.5 text-xs bg-white border border-slate-200 rounded-xl shadow-sm font-semibold text-slate-600 cursor-pointer min-w-[200px] outline-none focus:ring-2 focus:ring-indigo-500"></select>
             </div>
         </div>
 
-        <!-- COMPACT TABLE -->
+        <!-- KPI CARDS -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div class="glass-card p-5 border-b-4 border-b-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Spent</p>
+                <h3 id="totalSpent" class="text-xl font-bold text-slate-800 tracking-tight">₹0</h3>
+            </div>
+            <div class="glass-card p-5 border-b-4 border-b-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Reach</p>
+                <h3 id="totalImpressions" class="text-xl font-bold text-slate-800 tracking-tight">0</h3>
+            </div>
+            <div class="glass-card p-5 border-b-4 border-b-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Clicks</p>
+                <h3 id="totalClicks" class="text-xl font-bold text-slate-800 tracking-tight">0</h3>
+            </div>
+            <div class="glass-card p-5 bg-indigo-600 shadow-lg shadow-indigo-100 border-none">
+                <p class="text-[10px] font-bold text-indigo-100 uppercase tracking-widest mb-1">Avg. CPM</p>
+                <h3 id="avgCPM" class="text-xl font-bold text-white tracking-tight">0</h3>
+            </div>
+            <div class="glass-card p-5 bg-emerald-600 shadow-lg shadow-emerald-100 border-none">
+                <p class="text-[10px] font-bold text-emerald-100 uppercase tracking-widest mb-1">Avg. CPC</p>
+                <h3 id="avgCPC" class="text-xl font-bold text-white tracking-tight">0</h3>
+            </div>
+        </div>
+
+        <!-- CHART -->
+        <div class="glass-card p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="chartTitle" class="text-xs font-bold text-slate-500 uppercase tracking-widest">Efficiency Trends</h3>
+                <div class="flex gap-4">
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-indigo-500"></span><span class="text-[10px] font-bold text-slate-500">CPM</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500"></span><span class="text-[10px] font-bold text-slate-500">CPC</span></div>
+                </div>
+            </div>
+            <!-- Increased height slightly for labels -->
+            <div class="h-[350px]"><canvas id="mainChart"></canvas></div>
+        </div>
+
+        <!-- TABLE -->
         <div class="glass-card overflow-hidden">
-            <div class="overflow-x-auto max-h-[350px]">
+            <div class="overflow-x-auto max-h-[500px]">
                 <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-100">
-                        <tr>
-                            <th class="px-6 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Account & Period</th>
-                            <th class="px-6 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Spent</th>
-                            <th class="px-6 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Reach</th>
-                            <th class="px-6 py-3 text-[9px] font-black text-indigo-500 uppercase tracking-widest text-right">CPM Ranking</th>
+                    <thead class="bg-slate-50 sticky top-0 z-10">
+                        <tr class="border-b border-slate-200">
+                            <th onclick="toggleSort('label')" class="sort-header px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Description ↕</th>
+                            <th onclick="toggleSort('spent')" class="sort-header px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Spent ↕</th>
+                            <th onclick="toggleSort('impressions')" class="sort-header px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Reach ↕</th>
+                            <th onclick="toggleSort('clicks')" class="sort-header px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Clicks ↕</th>
+                            <th onclick="toggleSort('cpmVal')" class="sort-header px-6 py-4 text-[10px] font-bold text-indigo-600 uppercase tracking-widest text-right">CPM ↕</th>
+                            <th onclick="toggleSort('cpcVal')" class="sort-header px-6 py-4 text-[10px] font-bold text-emerald-600 uppercase tracking-widest text-right">CPC ↕</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-100/50"></tbody>
+                    <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        // Chronological order for sorting
-        const monthOrder = {
-            "Oct-25": 1, "Nov-25": 2, "Dec-25": 3,
-            "Jan-26": 4, "Feb-26": 5, "Mar-26": 6
+        // Register the plugin globally
+        Chart.register(ChartDataLabels);
+
+        const monthOrderMap = { 
+            "Oct-25": 1, "Nov-25": 2, "Dec-25": 3, 
+            "Jan-26": 4, "Feb-26": 5, "Mar-26": 6 
         };
 
         const rawData = [
-            { month: "Oct-25", account: "Aurum Analytica-NEW-INR - SC", spent:461406, impressions: 20469927 },
-{ month: "Oct-25", account: "Aurum Analytica  - Sept 2 - SC", spent:358821, impressions: 19620019 },
-{ month: "Oct-25", account: "Aurum Analytica - Sept 1 - SC", spent:232669, impressions: 12887946 },
-{ month: "Oct-25", account: "Birla Evara", spent:173423, impressions: 8712059 },
-{ month: "Oct-25", account: "Nawah Emporio Bhubaneshwar", spent:173114, impressions: 10597589 },
-{ month: "Oct-25", account: "Aurum - August - SC", spent:132231, impressions: 6589408 },
-{ month: "Oct-25", account: "Gurgaon", spent:88630, impressions: 4861339 },
-{ month: "Oct-25", account: "AIPL", spent:77626, impressions: 5011720 },
-{ month: "Oct-25", account: "Aurum - August2 - SC", spent:62415, impressions: 3760398 },
-{ month: "Oct-25", account: "Raheja Prime Mumbai", spent:44379, impressions: 1656379 },
-{ month: "Oct-25", account: "Runwal  - Garden City - SC", spent:33103, impressions: 3518277 },
-{ month: "Oct-25", account: "Signature Cloverdale", spent:31165, impressions: 2112863 },
-{ month: "Oct-25", account: "Kolkata", spent:28680, impressions: 3401046 },
-{ month: "Oct-25", account: "Aurum Analytica - INR - Godrej - SC", spent:27083, impressions: 3611198 },
-{ month: "Oct-25", account: "Ashwin Sheth - Fern", spent:21910, impressions: 1726979 },
-{ month: "Oct-25", account: "Mumbai", spent:20300, impressions: 973762 },
-{ month: "Oct-25", account: "Aparna Group  - Minka Riverdale - SC", spent:12775, impressions: 559102 },
-{ month: "Oct-25", account: "Hero Homes", spent:11891, impressions: 391623 },
-{ month: "Oct-25", account: "Thane", spent:6541, impressions: 359188 },
-{ month: "Oct-25", account: "Runwal - Avenue - SC", spent:3469, impressions: 435980 },
-{ month: "Nov-25", account: "Aurum Analytica-NEW-INR - SC", spent:714370, impressions: 35471240 },
-{ month: "Nov-25", account: "Aurum Analytica - Sept 1 - SC", spent:674941, impressions: 29011816 },
-{ month: "Nov-25", account: "Aurum Analytica  - Sept 2 - SC", spent:290071, impressions: 9200616 },
-{ month: "Nov-25", account: "Aurum Analytica Private Limited - Nov1 - SC", spent:229206, impressions: 12031239 },
-{ month: "Nov-25", account: "AIPL", spent:136169, impressions: 4102567 },
-{ month: "Nov-25", account: "Runwal  - Garden City - SC", spent:132079, impressions: 7582288 },
-{ month: "Nov-25", account: "Birla Evara", spent:119915, impressions: 5631625 },
-{ month: "Nov-25", account: "Aurum - August2 - SC", spent:113319, impressions: 8431980 },
-{ month: "Nov-25", account: "Nawah Emporio Bhubaneshwar", spent:104225, impressions: 5905643 },
-{ month: "Nov-25", account: "Gurgaon", spent:84780, impressions: 3700489 },
-{ month: "Nov-25", account: "Aurum - August - SC", spent:69035, impressions: 4205242 },
-{ month: "Nov-25", account: "Thane", spent:62736, impressions: 3779560 },
-{ month: "Nov-25", account: "Runwal - Avenue - SC", spent:53160, impressions: 2872901 },
-{ month: "Nov-25", account: "Mumbai", spent:51455, impressions: 1964478 },
-{ month: "Nov-25", account: "Aurum Analytica Private Limited - Runwal Chembur - SC", spent:49394, impressions: 2201128 },
-{ month: "Nov-25", account: "Kolkata", spent:29789, impressions: 1539592 },
-{ month: "Nov-25", account: "Aurum Analytica Private Limited - Nov2 - SC", spent:26177, impressions: 2468033 },
-{ month: "Nov-25", account: "Signature Cloverdale", spent:24970, impressions: 1611428 },
-{ month: "Nov-25", account: "Mathapati - Constructions - SC", spent:14981, impressions: 820539 },
-{ month: "Nov-25", account: "Raheja Prime Mumbai", spent:13980, impressions: 371694 },
-{ month: "Nov-25", account: "Aparna Group  - Minka Riverdale - SC", spent:12753, impressions: 653594 },
-{ month: "Nov-25", account: "Kal Flick  - Vivanas Aloft - SC", spent:9069, impressions: 233138 },
-{ month: "Nov-25", account: "Adani - 10BKC transparent - SC", spent:8949, impressions: 242240 },
-{ month: "Nov-25", account: "Hero Homes", spent:3074, impressions: 170628 },
-{ month: "Dec-25", account: "Aurum Analytica-NEW-INR - SC", spent:830233, impressions: 44962975 },
-{ month: "Dec-25", account: "Aurum Analytica - Sept 1 - SC", spent:539169, impressions: 21208587 },
-{ month: "Dec-25", account: "Aurum Analytica Private Limited - Nov1 - SC", spent:361520, impressions: 16522531 },
-{ month: "Dec-25", account: "AIPL", spent:335371, impressions: 9725134 },
-{ month: "Dec-25", account: "Nawah Emporio Bhubaneshwar", spent:224999, impressions: 15187008 },
-{ month: "Dec-25", account: "Aurum Analytica  - Sept 2 - SC", spent:198795, impressions: 8600795 },
-{ month: "Dec-25", account: "Runwal  - Garden City - SC", spent:135189, impressions: 7609680 },
-{ month: "Dec-25", account: "Thane", spent:134801, impressions: 10650867 },
-{ month: "Dec-25", account: "Runwal - Avenue - SC", spent:128448, impressions: 4597634 },
-{ month: "Dec-25", account: "Aurum - August2 - SC", spent:115033, impressions: 5538896 },
-{ month: "Dec-25", account: "Aurum Analytica Private Limited - Nov2 - SC", spent:88670, impressions: 4630501 },
-{ month: "Dec-25", account: "Raheja Prime Mumbai", spent:81796, impressions: 3976789 },
-{ month: "Dec-25", account: "Gurgaon", spent:79947, impressions: 7201954 },
-{ month: "Dec-25", account: "Aurum Analytica Private Limited - Runwal Chembur - SC", spent:71072, impressions: 5791189 },
-{ month: "Dec-25", account: "Aurum - August - SC", spent:62691, impressions: 2876519 },
-{ month: "Dec-25", account: "Kal Flick  - Vivanas Aloft - SC", spent:42524, impressions: 3556035 },
-{ month: "Dec-25", account: "Birla Evara", spent:37427, impressions: 1187938 },
-{ month: "Dec-25", account: "Aurum Analytica - Dhruv Tranquil - SC", spent:33958, impressions: 2007496 },
-{ month: "Dec-25", account: "Mumbai", spent:32913, impressions: 2031578 },
-{ month: "Dec-25", account: "Adani - 10BKC transparent - SC", spent:28389, impressions: 652080 },
-{ month: "Dec-25", account: "Mathapati - Constructions - SC", spent:28155, impressions: 969197 },
-{ month: "Dec-25", account: "Hero Homes", spent:15092, impressions: 835210 },
-{ month: "Dec-25", account: "Aparna Group  - Minka Riverdale - SC", spent:12946, impressions: 1065860 },
-{ month: "Dec-25", account: "Kolkata", spent:7483, impressions: 374040 },
-{ month: "Dec-25", account: "Dhananjay - Team - SC", spent:1928, impressions: 33266 },
-{ month: "Jan-26", account: "Aurum Analytica-NEW-INR - SC", spent:390392, impressions: 26674111 },
-{ month: "Jan-26", account: "Aurum Analytica Private Limited - Nov1 - SC", spent:358914, impressions: 14406686 },
-{ month: "Jan-26", account: "AIPL", spent:319587, impressions: 15668288 },
-{ month: "Jan-26", account: "Aurum Analytica - Sept 1 - SC", spent:313683, impressions: 16275698 },
-{ month: "Jan-26", account: "Aurum Analytica  - Sept 2 - SC", spent:250342, impressions: 10367461 },
-{ month: "Jan-26", account: "Thane", spent:134103, impressions: 7934403 },
-{ month: "Jan-26", account: "Aurum - August2 - SC", spent:118711, impressions: 6727845 },
-{ month: "Jan-26", account: "Aurum Analytica Private Limited - Nov2 - SC", spent:104270, impressions: 6531683 },
-{ month: "Jan-26", account: "Runwal - Avenue - SC", spent:85512, impressions: 4523951 },
-{ month: "Jan-26", account: "Runwal  - Garden City - SC", spent:80567, impressions: 5351426 },
-{ month: "Jan-26", account: "Adani - 10BKC transparent - SC", spent:64173, impressions: 5057640 },
-{ month: "Jan-26", account: "Dhananjay - Team - SC", spent:55697, impressions: 4223055 },
-{ month: "Jan-26", account: "Birla Evara", spent:48755, impressions: 1141707 },
-{ month: "Jan-26", account: "Gurgaon", spent:39685, impressions: 2013379 },
-{ month: "Jan-26", account: "Aurum Analytica Private Limited - Runwal Chembur - SC", spent:33087, impressions: 2146445 },
-{ month: "Jan-26", account: "Nawah Emporio Bhubaneshwar", spent:31028, impressions: 2336539 },
-{ month: "Jan-26", account: "Kal Flick  - Vivanas Aloft - SC", spent:30626, impressions: 1855331 },
-{ month: "Jan-26", account: "Raheja Prime Mumbai", spent:22561, impressions: 1672336 },
-{ month: "Jan-26", account: "AA New Project - 1 - SC", spent:21880, impressions: 2259927 },
-{ month: "Jan-26", account: "Aurum Analytica - Dhruv Tranquil - SC", spent:9559, impressions: 659807 },
-{ month: "Jan-26", account: "AA New Project - 2 - SC", spent:2232, impressions: 345784 },
-{ month: "Jan-26", account: "Omaxe - IND - SC", spent:2148, impressions: 92634 },
-{ month: "Jan-26", account: "Aurum - August - SC", spent:1894, impressions: 144540 },
-{ month: "Jan-26", account: "Aurum Analytica - INR - Godrej - SC", spent:470, impressions: 25347 },
-{ month: "Jan-26", account: "Mathapati - Constructions - SC", spent:0, impressions: 18 },
-{ month: "Feb-26", account: "Dhananjay - Team - SC", spent:362814, impressions: 17073437 },
-{ month: "Feb-26", account: "Aurum Analytica-NEW-INR - SC", spent:351057, impressions: 18137538 },
-{ month: "Feb-26", account: "AA New Project - 1 - SC", spent:254635, impressions: 12550216 },
-{ month: "Feb-26", account: "Aurum Analytica - Sept 1 - SC", spent:209253, impressions: 9623721 },
-{ month: "Feb-26", account: "AIPL", spent:167057, impressions: 6056652 },
-{ month: "Feb-26", account: "Aurum Analytica Private Limited - Nov1 - SC", spent:144508, impressions: 6451539 },
-{ month: "Feb-26", account: "Aurum Analytica  - Sept 2 - SC", spent:128625, impressions: 4684347 },
-{ month: "Feb-26", account: "Aurum - August2 - SC", spent:95194, impressions: 3310923 },
-{ month: "Feb-26", account: "AA New Project - 2 - SC", spent:69335, impressions: 5774726 },
-{ month: "Feb-26", account: "Aurum Analytica Private Limited - Nov2 - SC", spent:61448, impressions: 2813538 },
-{ month: "Feb-26", account: "Thane", spent:59150, impressions: 2645672 },
-{ month: "Feb-26", account: "Kal Flick  - Vivanas Aloft - SC", spent:44555, impressions: 1592647 },
-{ month: "Feb-26", account: "Aurum Analytica Private Limited - Runwal Chembur - SC", spent:31508, impressions: 1154821 },
-{ month: "Feb-26", account: "Embassy_Group_Strategic_Mumbai - 12-02-2026 - SC", spent:31361, impressions: 2944790 },
-{ month: "Feb-26", account: "Nawah Emporio Bhubaneshwar", spent:29588, impressions: 1648097 },
-{ month: "Feb-26", account: "Kolkata", spent:23027, impressions: 728729 },
-{ month: "Feb-26", account: "Runwal - Avenue - SC", spent:22787, impressions: 1274499 },
-{ month: "Feb-26", account: "Adani - 10BKC transparent - SC", spent:14665, impressions: 401878 },
-{ month: "Feb-26", account: "Gurgaon", spent:12518, impressions: 576402 },
-{ month: "Feb-26", account: "Hero_Homes_strategic_Ludhiana - 11-02-2026 - SC", spent:11029, impressions: 572887 },
-{ month: "Feb-26", account: "Omaxe - IND - SC", spent:8675, impressions: 352417 },
-{ month: "Feb-26", account: "Aurum Analytica - Dhruv Tranquil - SC", spent:8391, impressions: 1063417 },
-{ month: "Feb-26", account: "Hero Homes", spent:5164, impressions: 452026 },
-{ month: "Feb-26", account: "Raheja Prime Mumbai", spent:2733, impressions: 914456 }
+            { month: "Oct-25", account: "Aurum Analytica-NEW-INR - SC", spent:461406, impressions: 20469927, clicks: 134062 },
+{ month: "Oct-25", account: "Aurum Analytica  - Sept 2 - SC", spent:358821, impressions: 19620019, clicks: 80781 },
+{ month: "Oct-25", account: "Aurum Analytica - Sept 1 - SC", spent:232669, impressions: 12887946, clicks: 58111 },
+{ month: "Oct-25", account: "Birla Evara", spent:173423, impressions: 8712059, clicks: 33966 },
+{ month: "Oct-25", account: "Nawah Emporio Bhubaneshwar", spent:173114, impressions: 10597589, clicks: 64628 },
+{ month: "Oct-25", account: "Aurum - August - SC", spent:132231, impressions: 6589408, clicks: 30814 },
+{ month: "Oct-25", account: "Gurgaon", spent:88630, impressions: 4861339, clicks: 25138 },
+{ month: "Oct-25", account: "AIPL", spent:77626, impressions: 5011720, clicks: 17367 },
+{ month: "Oct-25", account: "Aurum - August2 - SC", spent:62415, impressions: 3760398, clicks: 13475 },
+{ month: "Oct-25", account: "Raheja Prime Mumbai", spent:44379, impressions: 1656379, clicks: 10979 },
+{ month: "Oct-25", account: "Runwal  - Garden City - SC", spent:33103, impressions: 3518277, clicks: 13358 },
+{ month: "Oct-25", account: "Signature Cloverdale", spent:31165, impressions: 2112863, clicks: 12563 },
+{ month: "Oct-25", account: "Kolkata", spent:28680, impressions: 3401046, clicks: 13213 },
+{ month: "Oct-25", account: "Aurum Analytica - INR - Godrej - SC", spent:27083, impressions: 3611198, clicks: 20943 },
+{ month: "Oct-25", account: "Ashwin Sheth - Fern", spent:21910, impressions: 1726979, clicks: 6704 },
+{ month: "Oct-25", account: "Mumbai", spent:20300, impressions: 973762, clicks: 4902 },
+{ month: "Oct-25", account: "Aparna Group  - Minka Riverdale - SC", spent:12775, impressions: 559102, clicks: 4397 },
+{ month: "Oct-25", account: "Hero Homes", spent:11891, impressions: 391623, clicks: 3230 },
+{ month: "Oct-25", account: "Thane", spent:6541, impressions: 359188, clicks: 2011 },
+{ month: "Oct-25", account: "Runwal - Avenue - SC", spent:3469, impressions: 435980, clicks: 1689 },
+{ month: "Nov-25", account: "Aurum Analytica-NEW-INR - SC", spent:714370, impressions: 35471240, clicks: 199622 },
+{ month: "Nov-25", account: "Aurum Analytica - Sept 1 - SC", spent:674941, impressions: 29011816, clicks: 90185 },
+{ month: "Nov-25", account: "Aurum Analytica  - Sept 2 - SC", spent:290071, impressions: 9200616, clicks: 32073 },
+{ month: "Nov-25", account: "Aurum Analytica Private Limited - Nov1 - SC", spent:229206, impressions: 12031239, clicks: 42265 },
+{ month: "Nov-25", account: "AIPL", spent:136169, impressions: 4102567, clicks: 12378 },
+{ month: "Nov-25", account: "Runwal  - Garden City - SC", spent:132079, impressions: 7582288, clicks: 33197 },
+{ month: "Nov-25", account: "Birla Evara", spent:119915, impressions: 5631625, clicks: 25206 },
+{ month: "Nov-25", account: "Aurum - August2 - SC", spent:113319, impressions: 8431980, clicks: 19374 },
+{ month: "Nov-25", account: "Nawah Emporio Bhubaneshwar", spent:104225, impressions: 5905643, clicks: 39182 },
+{ month: "Nov-25", account: "Gurgaon", spent:84780, impressions: 3700489, clicks: 24759 },
+{ month: "Nov-25", account: "Aurum - August - SC", spent:69035, impressions: 4205242, clicks: 11677 },
+{ month: "Nov-25", account: "Thane", spent:62736, impressions: 3779560, clicks: 16674 },
+{ month: "Nov-25", account: "Runwal - Avenue - SC", spent:53160, impressions: 2872901, clicks: 14551 },
+{ month: "Nov-25", account: "Mumbai", spent:51455, impressions: 1964478, clicks: 13532 },
+{ month: "Nov-25", account: "Aurum Analytica Private Limited - Runwal Chembur - SC", spent:49394, impressions: 2201128, clicks: 6774 },
+{ month: "Nov-25", account: "Kolkata", spent:29789, impressions: 1539592, clicks: 8820 },
+{ month: "Nov-25", account: "Aurum Analytica Private Limited - Nov2 - SC", spent:26177, impressions: 2468033, clicks: 8447 },
+{ month: "Nov-25", account: "Signature Cloverdale", spent:24970, impressions: 1611428, clicks: 5990 },
+{ month: "Nov-25", account: "Mathapati - Constructions - SC", spent:14981, impressions: 820539, clicks: 4406 },
+{ month: "Nov-25", account: "Raheja Prime Mumbai", spent:13980, impressions: 371694, clicks: 1989 },
+{ month: "Nov-25", account: "Aparna Group  - Minka Riverdale - SC", spent:12753, impressions: 653594, clicks: 4588 },
+{ month: "Nov-25", account: "Kal Flick  - Vivanas Aloft - SC", spent:9069, impressions: 233138, clicks: 2636 },
+{ month: "Nov-25", account: "Adani - 10BKC transparent - SC", spent:8949, impressions: 242240, clicks: 1422 },
+{ month: "Nov-25", account: "Hero Homes", spent:3074, impressions: 170628, clicks: 1830 },
+{ month: "Dec-25", account: "Aurum Analytica-NEW-INR - SC", spent:830233, impressions: 44962975, clicks: 257206 },
+{ month: "Dec-25", account: "Aurum Analytica - Sept 1 - SC", spent:539169, impressions: 21208587, clicks: 72228 },
+{ month: "Dec-25", account: "Aurum Analytica Private Limited - Nov1 - SC", spent:361520, impressions: 16522531, clicks: 62947 },
+{ month: "Dec-25", account: "AIPL", spent:335371, impressions: 9725134, clicks: 42625 },
+{ month: "Dec-25", account: "Nawah Emporio Bhubaneshwar", spent:224999, impressions: 15187008, clicks: 66691 },
+{ month: "Dec-25", account: "Aurum Analytica  - Sept 2 - SC", spent:198795, impressions: 8600795, clicks: 35447 },
+{ month: "Dec-25", account: "Runwal  - Garden City - SC", spent:135189, impressions: 7609680, clicks: 76624 },
+{ month: "Dec-25", account: "Thane", spent:134801, impressions: 10650867, clicks: 43817 },
+{ month: "Dec-25", account: "Runwal - Avenue - SC", spent:128448, impressions: 4597634, clicks: 22158 },
+{ month: "Dec-25", account: "Aurum - August2 - SC", spent:115033, impressions: 5538896, clicks: 22551 },
+{ month: "Dec-25", account: "Aurum Analytica Private Limited - Nov2 - SC", spent:88670, impressions: 4630501, clicks: 16060 },
+{ month: "Dec-25", account: "Raheja Prime Mumbai", spent:81796, impressions: 3976789, clicks: 14602 },
+{ month: "Dec-25", account: "Gurgaon", spent:79947, impressions: 7201954, clicks: 25899 },
+{ month: "Dec-25", account: "Aurum Analytica Private Limited - Runwal Chembur - SC", spent:71072, impressions: 5791189, clicks: 12685 },
+{ month: "Dec-25", account: "Aurum - August - SC", spent:62691, impressions: 2876519, clicks: 12981 },
+{ month: "Dec-25", account: "Kal Flick  - Vivanas Aloft - SC", spent:42524, impressions: 3556035, clicks: 25140 },
+{ month: "Dec-25", account: "Birla Evara", spent:37427, impressions: 1187938, clicks: 6430 },
+{ month: "Dec-25", account: "Aurum Analytica - Dhruv Tranquil - SC", spent:33958, impressions: 2007496, clicks: 8256 },
+{ month: "Dec-25", account: "Mumbai", spent:32913, impressions: 2031578, clicks: 11227 },
+{ month: "Dec-25", account: "Adani - 10BKC transparent - SC", spent:28389, impressions: 652080, clicks: 3337 },
+{ month: "Dec-25", account: "Mathapati - Constructions - SC", spent:28155, impressions: 969197, clicks: 11718 },
+{ month: "Dec-25", account: "Hero Homes", spent:15092, impressions: 835210, clicks: 2340 },
+{ month: "Dec-25", account: "Aparna Group  - Minka Riverdale - SC", spent:12946, impressions: 1065860, clicks: 3589 },
+{ month: "Dec-25", account: "Kolkata", spent:7483, impressions: 374040, clicks: 2530 },
+{ month: "Dec-25", account: "Dhananjay - Team - SC", spent:1928, impressions: 33266, clicks: 565 },
+{ month: "Jan-26", account: "Aurum Analytica-NEW-INR - SC", spent:390392, impressions: 26674111, clicks: 121914 },
+{ month: "Jan-26", account: "Aurum Analytica Private Limited - Nov1 - SC", spent:358914, impressions: 14406686, clicks: 57217 },
+{ month: "Jan-26", account: "AIPL", spent:319587, impressions: 15668288, clicks: 70831 },
+{ month: "Jan-26", account: "Aurum Analytica - Sept 1 - SC", spent:313683, impressions: 16275698, clicks: 69501 },
+{ month: "Jan-26", account: "Aurum Analytica  - Sept 2 - SC", spent:250342, impressions: 10367461, clicks: 67546 },
+{ month: "Jan-26", account: "Thane", spent:134103, impressions: 7934403, clicks: 40614 },
+{ month: "Jan-26", account: "Aurum - August2 - SC", spent:118711, impressions: 6727845, clicks: 21197 },
+{ month: "Jan-26", account: "Aurum Analytica Private Limited - Nov2 - SC", spent:104270, impressions: 6531683, clicks: 46227 },
+{ month: "Jan-26", account: "Runwal - Avenue - SC", spent:85512, impressions: 4523951, clicks: 12111 },
+{ month: "Jan-26", account: "Runwal  - Garden City - SC", spent:80567, impressions: 5351426, clicks: 18026 },
+{ month: "Jan-26", account: "Adani - 10BKC transparent - SC", spent:64173, impressions: 5057640, clicks: 18378 },
+{ month: "Jan-26", account: "Dhananjay - Team - SC", spent:55697, impressions: 4223055, clicks: 13550 },
+{ month: "Jan-26", account: "Birla Evara", spent:48755, impressions: 1141707, clicks: 11776 },
+{ month: "Jan-26", account: "Gurgaon", spent:39685, impressions: 2013379, clicks: 11396 },
+{ month: "Jan-26", account: "Aurum Analytica Private Limited - Runwal Chembur - SC", spent:33087, impressions: 2146445, clicks: 6761 },
+{ month: "Jan-26", account: "Nawah Emporio Bhubaneshwar", spent:31028, impressions: 2336539, clicks: 13614 },
+{ month: "Jan-26", account: "Kal Flick  - Vivanas Aloft - SC", spent:30626, impressions: 1855331, clicks: 10627 },
+{ month: "Jan-26", account: "Raheja Prime Mumbai", spent:22561, impressions: 1672336, clicks: 22724 },
+{ month: "Jan-26", account: "AA New Project - 1 - SC", spent:21880, impressions: 2259927, clicks: 7694 },
+{ month: "Jan-26", account: "Aurum Analytica - Dhruv Tranquil - SC", spent:9559, impressions: 659807, clicks: 9263 },
+{ month: "Jan-26", account: "AA New Project - 2 - SC", spent:2232, impressions: 345784, clicks: 1111 },
+{ month: "Jan-26", account: "Omaxe - IND - SC", spent:2148, impressions: 92634, clicks: 736 },
+{ month: "Jan-26", account: "Aurum - August - SC", spent:1894, impressions: 144540, clicks: 1674 },
+{ month: "Jan-26", account: "Aurum Analytica - INR - Godrej - SC", spent:470, impressions: 25347, clicks: 106 },
+{ month: "Jan-26", account: "Mathapati - Constructions - SC", spent:0, impressions: 18, clicks: 0 },
+{ month: "Feb-26", account: "Dhananjay - Team - SC", spent:362814, impressions: 17073437, clicks: 50133 },
+{ month: "Feb-26", account: "Aurum Analytica-NEW-INR - SC", spent:351057, impressions: 18137538, clicks: 86440 },
+{ month: "Feb-26", account: "AA New Project - 1 - SC", spent:254635, impressions: 12550216, clicks: 63130 },
+{ month: "Feb-26", account: "Aurum Analytica - Sept 1 - SC", spent:209253, impressions: 9623721, clicks: 47343 },
+{ month: "Feb-26", account: "AIPL", spent:167057, impressions: 6056652, clicks: 28016 },
+{ month: "Feb-26", account: "Aurum Analytica Private Limited - Nov1 - SC", spent:144508, impressions: 6451539, clicks: 27616 },
+{ month: "Feb-26", account: "Aurum Analytica  - Sept 2 - SC", spent:128625, impressions: 4684347, clicks: 24427 },
+{ month: "Feb-26", account: "Aurum - August2 - SC", spent:95194, impressions: 3310923, clicks: 14870 },
+{ month: "Feb-26", account: "AA New Project - 2 - SC", spent:69335, impressions: 5774726, clicks: 24672 },
+{ month: "Feb-26", account: "Aurum Analytica Private Limited - Nov2 - SC", spent:61448, impressions: 2813538, clicks: 15438 },
+{ month: "Feb-26", account: "Thane", spent:59150, impressions: 2645672, clicks: 14797 },
+{ month: "Feb-26", account: "Kal Flick  - Vivanas Aloft - SC", spent:44555, impressions: 1592647, clicks: 9253 },
+{ month: "Feb-26", account: "Aurum Analytica Private Limited - Runwal Chembur - SC", spent:31508, impressions: 1154821, clicks: 5684 },
+{ month: "Feb-26", account: "Embassy_Group_Strategic_Mumbai - 12-02-2026 - SC", spent:31361, impressions: 2944790, clicks: 9216 },
+{ month: "Feb-26", account: "Nawah Emporio Bhubaneshwar", spent:29588, impressions: 1648097, clicks: 9351 },
+{ month: "Feb-26", account: "Kolkata", spent:23027, impressions: 728729, clicks: 4854 },
+{ month: "Feb-26", account: "Runwal - Avenue - SC", spent:22787, impressions: 1274499, clicks: 6520 },
+{ month: "Feb-26", account: "Adani - 10BKC transparent - SC", spent:14665, impressions: 401878, clicks: 2779 },
+{ month: "Feb-26", account: "Gurgaon", spent:12518, impressions: 576402, clicks: 5542 },
+{ month: "Feb-26", account: "Hero_Homes_strategic_Ludhiana - 11-02-2026 - SC", spent:11029, impressions: 572887, clicks: 3217 },
+{ month: "Feb-26", account: "Omaxe - IND - SC", spent:8675, impressions: 352417, clicks: 1712 },
+{ month: "Feb-26", account: "Aurum Analytica - Dhruv Tranquil - SC", spent:8391, impressions: 1063417, clicks: 6515 },
+{ month: "Feb-26", account: "Hero Homes", spent:5164, impressions: 452026, clicks: 2252 },
+{ month: "Feb-26", account: "Raheja Prime Mumbai", spent:2733, impressions: 914456, clicks: 11767 }
         ];
 
-        let cpmChart;
+        let mainChart;
+        let currentSort = { key: 'spent', order: 'desc' };
+        let processedData = [];
 
-        function initDynamicFilters() {
-            const monthSelect = document.getElementById('monthFilter');
-            const accountSelect = document.getElementById('accountFilter');
+        function init() {
+            const mSelect = document.getElementById('monthFilter');
+            const aSelect = document.getElementById('accountFilter');
+            mSelect.innerHTML = '<option value="All">All Months</option>';
+            aSelect.innerHTML = '<option value="All">All Accounts</option>';
 
-            const uniqueMonths = [...new Set(rawData.map(item => item.month))].sort((a,b) => monthOrder[a] - monthOrder[b]);
-            uniqueMonths.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m; opt.innerText = m;
-                monthSelect.appendChild(opt);
-            });
-
-            const uniqueAccounts = [...new Set(rawData.map(item => item.account))].sort();
-            uniqueAccounts.forEach(acc => {
-                const opt = document.createElement('option');
-                opt.value = acc; opt.innerText = acc;
-                accountSelect.appendChild(opt);
-            });
-
+            const uniqueMonths = [...new Set(rawData.map(i => i.month))].sort((a,b) => monthOrderMap[a] - monthOrderMap[b]);
+            const uniqueAccounts = [...new Set(rawData.map(i => i.account))].sort();
+            
+            uniqueMonths.forEach(m => mSelect.add(new Option(m, m)));
+            uniqueAccounts.forEach(acc => aSelect.add(new Option(acc, acc)));
+            
             updateDashboard();
+        }
+
+        function toggleSort(key) {
+            if (currentSort.key === key) currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+            else { currentSort.key = key; currentSort.order = 'desc'; }
+            renderTable();
         }
 
         function updateDashboard() {
             const mVal = document.getElementById('monthFilter').value;
             const aVal = document.getElementById('accountFilter').value;
-            const axisLabel = document.getElementById('axisLabel');
+            const viewIndicator = document.getElementById('viewIndicator');
 
             let filtered = rawData.filter(i => (mVal === "All" || i.month === mVal) && (aVal === "All" || i.account === aVal));
 
-            let displayData = [];
-            let isProjectView = (aVal !== "All" && mVal === "All");
-
-            if (isProjectView) {
-                displayData = filtered; 
-                axisLabel.innerText = "Trend: Month-over-Month";
-                displayData.sort((a, b) => monthOrder[a.month] - monthOrder[b.month]);
-            } else if (mVal === "All") {
+            if (aVal !== "All" && mVal === "All") {
+                processedData = filtered.map(i => ({...i, label: i.month, subLabel: i.account}));
+                processedData.sort((a,b) => monthOrderMap[a.label] - monthOrderMap[b.label]);
+                currentSort = { key: 'label', order: 'asc' };
+                viewIndicator.innerText = `Growth Trend: ${aVal}`;
+            } 
+            else if (mVal !== "All" && aVal === "All") {
+                processedData = filtered.map(i => ({...i, label: i.account, subLabel: i.month}));
+                currentSort = { key: 'spent', order: 'desc' };
+                viewIndicator.innerText = `Overview for ${mVal}`;
+            }
+            else if (mVal === "All" && aVal === "All") {
                 const grouped = filtered.reduce((acc, item) => {
-                    if (!acc[item.account]) acc[item.account] = { account: item.account, spent: 0, impressions: 0, month: "LifeTime" };
+                    if (!acc[item.account]) acc[item.account] = { account: item.account, spent: 0, impressions: 0, clicks: 0, month: "LifeTime" };
                     acc[item.account].spent += item.spent;
                     acc[item.account].impressions += item.impressions;
+                    acc[item.account].clicks += item.clicks;
                     return acc;
                 }, {});
-                displayData = Object.values(grouped);
-                axisLabel.innerText = "Grouping: Account";
-            } else {
-                displayData = filtered;
-                axisLabel.innerText = "Grouping: Account";
+                processedData = Object.values(grouped).map(i => ({...i, label: i.account, subLabel: i.month}));
+                currentSort = { key: 'spent', order: 'desc' };
+                viewIndicator.innerText = "Global Account Overview";
+            }
+            else {
+                processedData = filtered.map(i => ({...i, label: i.account, subLabel: i.month}));
             }
 
-            displayData.forEach(i => i.cpmVal = i.impressions > 0 ? (i.spent / i.impressions) * 1000 : 0);
-            
-            if (!isProjectView) {
-                displayData.sort((a, b) => b.cpmVal - a.cpmVal);
-            }
+            processedData.forEach(i => {
+                i.cpmVal = i.impressions > 0 ? (i.spent / i.impressions) * 1000 : 0;
+                i.cpcVal = i.clicks > 0 ? (i.spent / i.clicks) : 0;
+            });
 
-            const tSpent = displayData.reduce((s, i) => s + i.spent, 0);
-            const tImp = displayData.reduce((s, i) => s + i.impressions, 0);
-            document.getElementById('totalSpent').innerText = '₹' + tSpent.toLocaleString('en-IN');
-            document.getElementById('totalImpressions').innerText = tImp.toLocaleString('en-IN');
-            document.getElementById('avgCPM').innerText = tImp > 0 ? ((tSpent / tImp) * 1000).toFixed(2) : "0.00";
+            updateKPIs();
+            renderTable();
+            renderChart();
+        }
 
+        function renderTable() {
             const tbody = document.getElementById('tableBody');
+            const dataToSort = [...processedData];
+
+            dataToSort.sort((a, b) => {
+                let valA = a[currentSort.key], valB = b[currentSort.key];
+                if (currentSort.key === 'label') {
+                    const orderA = monthOrderMap[valA] || 0;
+                    const orderB = monthOrderMap[valB] || 0;
+                    if (orderA !== 0 && orderB !== 0) {
+                        return currentSort.order === 'asc' ? orderA - orderB : orderB - orderA;
+                    }
+                }
+                return currentSort.order === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+            });
+
             tbody.innerHTML = '';
-            displayData.forEach(item => {
-                const label = isProjectView ? item.month : item.account;
-                const subLabel = isProjectView ? item.account : item.month;
+            dataToSort.forEach(item => {
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition-all">
-                        <td class="px-6 py-2.5">
-                            <div class="font-bold text-slate-800 text-[10px]">${label}</div>
-                            <div class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">${subLabel}</div>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-slate-800 text-[11px]">${item.label}</div>
+                            <div class="text-[9px] font-semibold text-slate-400 uppercase tracking-tighter">${item.subLabel}</div>
                         </td>
-                        <td class="px-6 py-2.5 text-right font-bold text-slate-600 text-[10px]">₹${item.spent.toLocaleString('en-IN')}</td>
-                        <td class="px-6 py-2.5 text-right text-[10px] text-slate-400 font-medium">${item.impressions.toLocaleString()}</td>
-                        <td class="px-6 py-2.5 text-right">
-                            <span class="bg-indigo-600 text-white px-2.5 py-1 rounded-md text-[9px] font-black">${item.cpmVal.toFixed(2)}</span>
+                        <td class="px-6 py-4 text-right font-bold text-slate-700 text-[11px]">₹${item.spent.toLocaleString('en-IN')}</td>
+                        <td class="px-6 py-4 text-right text-[11px] text-slate-500 font-medium">${item.impressions.toLocaleString()}</td>
+                        <td class="px-6 py-4 text-right text-[11px] text-slate-500 font-medium">${item.clicks.toLocaleString()}</td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full text-[10px] font-bold">${item.cpmVal.toFixed(2)}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[10px] font-bold">${item.cpcVal.toFixed(2)}</span>
                         </td>
                     </tr>`;
             });
-
-            const finalLabels = isProjectView 
-                ? displayData.map(i => i.month) 
-                : displayData.map(i => i.account.length > 12 ? i.account.substring(0,12)+'..' : i.account);
-
-            renderCPMChart(finalLabels, displayData.map(i => i.cpmVal));
         }
 
-        function renderCPMChart(labels, values) {
-            if (cpmChart) cpmChart.destroy();
-            cpmChart = new Chart(document.getElementById('cpmChart'), {
+        function updateKPIs() {
+            const tSpent = processedData.reduce((s, i) => s + i.spent, 0);
+            const tImp = processedData.reduce((s, i) => s + i.impressions, 0);
+            const tClick = processedData.reduce((s, i) => s + i.clicks, 0);
+            document.getElementById('totalSpent').innerText = '₹' + tSpent.toLocaleString('en-IN');
+            document.getElementById('totalImpressions').innerText = tImp.toLocaleString('en-IN');
+            document.getElementById('totalClicks').innerText = tClick.toLocaleString('en-IN');
+            document.getElementById('avgCPM').innerText = tImp > 0 ? ((tSpent / tImp) * 1000).toFixed(2) : "0.00";
+            document.getElementById('avgCPC').innerText = tClick > 0 ? (tSpent / tClick).toFixed(2) : "0.00";
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if (mainChart) mainChart.destroy();
+            
+            mainChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: '#6366f1',
-                        borderRadius: 5,
-                        barThickness: 20
-                    }]
+                    labels: processedData.map(i => i.label),
+                    datasets: [
+                        { 
+                            label: 'CPM', 
+                            data: processedData.map(i => i.cpmVal), 
+                            backgroundColor: '#6366f1', 
+                            borderRadius: 4,
+                            datalabels: { align: 'top', anchor: 'end' }
+                        },
+                        { 
+                            label: 'CPC', 
+                            data: processedData.map(i => i.cpcVal), 
+                            backgroundColor: '#10b981', 
+                            borderRadius: 4,
+                            datalabels: { align: 'top', anchor: 'end' }
+                        }
+                    ]
                 },
                 options: {
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    layout: {
+                        padding: { top: 30 } // Labels ke liye upar jagah chodi hai
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: true },
+                        datalabels: {
+                            color: '#475569',
+                            font: { family: 'Outfit', weight: '700', size: 10 },
+                            formatter: (value) => value.toFixed(2),
+                            padding: 4
+                        }
+                    },
                     scales: {
-                        x: { grid: { display: false }, ticks: { font: { size: 8, weight: 'bold' } } },
-                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 8 } } }
+                        x: { grid: { display: false }, ticks: { font: { family: 'Outfit', size: 9, weight: '600' } } },
+                        y: { 
+                            grid: { borderDash: [5, 5], color: '#e2e8f0' }, 
+                            ticks: { font: { family: 'Outfit', size: 9 } },
+                            grace: '15%' // Ensures labels don't get cut off at the top
+                        }
                     }
                 }
             });
         }
 
-        initDynamicFilters();
+        init();
     </script>
 </body>
 </html>
